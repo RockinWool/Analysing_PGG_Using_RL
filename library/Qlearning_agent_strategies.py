@@ -1,6 +1,4 @@
 import numpy as np
-from .Calculate_payoff import Payoff_dealer as pad
-
 
 def _031_AI_select(GFW,episode,agent_num=0,n_player=0):
     
@@ -14,7 +12,7 @@ def _031_AI_select(GFW,episode,agent_num=0,n_player=0):
     
     state = np.reshape(state, (1, 2))
     
-    GFW.players_action[0][agent_num] =GFW.agents[agent_num].actor.get_action(state, episode, GFW.agents[agent_num].mainQN) # 時刻tでの行動を決定する
+    GFW.players_action[0][agent_num] =GFW.agents[agent_num].actor.get_action(state, episode, GFW.agents[agent_num].mainQN) 
     del state_base
     del state
     del current_cooperators_degree
