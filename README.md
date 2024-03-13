@@ -4,8 +4,7 @@ This repository is used to publish information about papers with the above title
 ## Table of Contents
 
 - [About](#about)
-- [Installation](#installation)
-- [Usage](#usage)
+- [Installation&Usage](#installation & Usage)
 - [Contributing](#contributing)
 - [License](#license)
 
