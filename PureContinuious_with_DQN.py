@@ -15,25 +15,15 @@ from keras import backend as K
 from library.Qnetwork import QNetwork
 from library.Qlearning_agent_settings import Actor, Memory
 from collections import deque
-from library.Calculate_payoff import Payoff_dealer as pad
 from library.Qlearning_agent import Agent
 from library.Qlearning_agent_strategies import _031_AI_select, _031_all_cooperate,_031_all_defect,_031_random_select,_031_tit_for_tat,_031_trigger,_031_WSLS
-from AutoDrawer import FigureCreater
 
 
 class Continuous_Game_Framework:
     def __init__(self,alpha,n_player):
         # Initialize Cooperating rate
-        # It is presented about each players current[1] and next[0] cooperating rate
-        # Initialize Agents
-        # self.b = self.params["b_coefficient"]
-
         self._010_init_variables(alpha,n_player)
-        self._020_run_trial()
-
-        # self._02_Agents_init(self.params["num_players"])
-        # self._13_reset_state()
-    
+        self._020_run_trial()  
 
     def _001_numpy_deque_push(self,nparray,input):
         nparray[1:] = nparray[0:-1]
@@ -46,6 +36,9 @@ class Continuous_Game_Framework:
             self.params = yaml.safe_load(yml)
 
     def _010_init_variables(self,alpha,n_player):
+        #-----------Change Filename-----#
+        self.csv_filename = "./data/sample.csv"
+        #-------------------------------#
         self._002_load_yaml()
         self.num_steps = self.params[ "num_steps"]
         self.num_episodes = self.params["num_episodes"]
@@ -58,14 +51,12 @@ class Continuous_Game_Framework:
             self.num_players = self.params["num_players"]
         else:
             self.num_players = [n_player]
-
-        # init self.df_crate
         self._011_init_df()
 
 
     def _011_init_df(self):
         try:
-            self.df_crate = pd.read_csv("./data/ctate1113.csv",index_col=0)
+            self.df_crate = pd.read_csv(self.csv_filename,index_col=0)
         except:
             data = np.zeros((self.num_trials,len(self.alpha)*len(self.num_players)))
             columns = []
@@ -74,7 +65,7 @@ class Continuous_Game_Framework:
                     columns.append("{}_{}".format(i,j))
             index = range(self.num_trials)
             self.df_crate = pd.DataFrame(data = data, columns=columns,index=index)
-            self.df_crate.to_csv("./data/ctate1113.csv")
+            self.df_crate.to_csv(self.csv_filename)
             exit(1)
 
     def _020_run_trial(self):
@@ -100,14 +91,12 @@ class Continuous_Game_Framework:
 
         for i in range(n_player):
             try:
-                # self.agents[i] = Agent(load_mode=True,agent_number=i,name=name)
                 self.agents[i] = Agent(load_mode=False,agent_number=i,name=name)
                 print("create network")
             except:
                 self.agents[i] = Agent(load_mode=False,agent_number=i,name=name)
                 print("create network")
-        # self._036_save(n_player,alpha)
-
+        
     def _023_set_b(self,n_player,alpha):
         self.b = alpha*n_player
 
@@ -115,15 +104,15 @@ class Continuous_Game_Framework:
         self.crate_average = 0
         
     def _025_add_crate_to_df(self,trial,alpha,n_player):
-        self.crate_average /= (self.num_episodes-4)
-        # self.df_crate.at[trial,"{}_{}".format(alpha,n_player)] = self.crate_average
+        #chaange here, also require to change line 135
+        self.crate_average /= (self.num_episodes-10)
         self.df_crate.at[trial,"{}_{}".format(alpha,n_player)] = self.crate_average
 
 
     def _026_clean_memory(self):
         gc.collect()
         K.clear_session()
-        self.df_crate.to_csv("./data/ctate1113.csv")
+        self.df_crate.to_csv(self.csv_filename)
         del self.players_action
         del self.agents
         del self.b
@@ -135,24 +124,14 @@ class Continuous_Game_Framework:
             self._035_targetQN_learning()
             self._021_init_state(n_player)
             for t in range(self.num_steps):                    
-                # Create next_state
                 for agent in range(n_player):
                     _031_AI_select(GFW=self,episode=episode,agent_num=agent,n_player=n_player)
-
-                # for agent in range(n_player-1):
-                #     _031_AI_select(GFW=self,episode=episode,agent_num=agent,n_player=n_player)
-                    
-                # oppo = np.random.choice(range(n_player-1))
-                # _031_tit_for_tat(GFW=self,agent_num=n_player-1,oppo_num=oppo)
-
                 self._032_give_reward(n_player)
                 self._033_memorize_data(n_player)
                 self._034_update_state()
             print('%d Episode finished after %d time steps / mean %2f' % (episode, t, self.agents[0].rewards.mean()))
             self._035_learning_main()                    
-            # self._036_save(n_player,alpha)
-            if episode >5:
-                # upper line is connected with _025_add_crate_to_df(self,trial,alpha,n_player):
+            if episode >9:
                 self._037_add_crate_()
                 
     def _032_give_reward(self,n_player):   
@@ -162,6 +141,8 @@ class Continuous_Game_Framework:
                 temp_reward = (n_player-num_of_Defector)*self.b/n_player -1
             elif self.players_action[0][i]==1:
                 temp_reward = (n_player-num_of_Defector)*self.b/n_player 
+            else:
+                print("rewrd error");exit(1)
                                 
             self.agents[i].rewards = self._001_numpy_deque_push(self.agents[i].rewards,temp_reward)
 
@@ -186,7 +167,6 @@ class Continuous_Game_Framework:
             self.agents[i].memory.add([state, action ,self.agents[i].rewards[0],next_state])
         
     def _034_update_state(self):
-        #self.players_Crate[1] = self.players_Crate[0]
         self.players_action = np.roll(self.players_action,1,axis=0)
         self.players_action[0] = self.players_action[1]
     
@@ -204,14 +184,10 @@ class Continuous_Game_Framework:
     
     def _036_save(self,n_player,alpha):
         for i in range(len(self.agents)):
-            # self.agents[i]._070_save(agent_number=i)
             self.agents[i]._071_save_with_name(agent_number=i,name = "./data/Agents/{}AI_{}_0926".format(n_player,alpha))
-            #self.agents[i].memory.save(object_num=i) 
 
     def _037_add_crate_(self):
         self.crate_average += 1 - np.mean(self.players_action)
-        # print(self.players_action)
-        # print(np.mean(self.players_action))
 
 if __name__ == "__main__":
     for i in range(len(sys.argv)):

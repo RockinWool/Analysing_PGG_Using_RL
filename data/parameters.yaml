@@ -1,18 +1,8 @@
-# Define number of repeat
 {
-    # 1エピソードのstep数
+    # the number of steps in a game
     "num_steps":20,
-    # エピソードの回数
-    "num_episodes":20,
-    # トライアルの回数
+    # The number of game
+    "num_episodes":30,
+    # Group size
     "num_trials":50,
-    #number_of_player
-    # "num_players":[2,3,5,7,10,20],
-    # "num_players":[5],
-    # alpha
-    # "alpha":[0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60],
-    # "alpha":[0.25,0.30],
-    
-    # "num_players":[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],
-    # "alpha":[0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60],
 }

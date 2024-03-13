@@ -21,20 +21,6 @@ class QNetwork:
         self.model = tf.keras.models.load_model(name)
         
     def create_model(self,input_size):
-        #    adam_learning_rate: 0.0003436452344013588
-        # n_layers: 9
-        # n_units_l0: 39
-        # n_units_l1: 16
-        # n_units_l2: 10
-        # n_units_l3: 49
-        # n_units_l4: 23
-        # n_units_l5: 112
-        # n_units_l6: 34
-        # n_units_l7: 36
-        # n_units_l8: 56
-        # optimizer: Adam
-        # weight_decay: 1.3945963806990511e-08
-
         optimizer = tf.keras.optimizers.Adam(self.lr)
         loss_fn = tf.keras.losses.Huber()
         # ----------Define input layer-------------#
@@ -72,33 +58,22 @@ class QNetwork:
         targets = np.zeros((batch_size, 2))
         rew_preds = np.zeros((batch_size, 2))
         mini_batch = memory.sample(batch_size)
-        print("Learning",end="",flush=True)
-        # Using enumerate, we can get i value contemporary state and action.
+
         for i, (state_b, action_b, reward_b, next_state_b) in enumerate(mini_batch):
-            #print("state:{}|action:{}|reward:{}|next:{}|".format(state_b, action_b, reward_b, next_state_b))
-            # state_b has 2/2 dimension.
             states[i] = state_b
             next_states[i] = next_state_b
             rewards[i] = reward_b
             actions[i] = action_b
             
-        # up or down から最大の報酬を返す行動を選択する
         retmainQs = self.model.predict(next_states,verbose=0)
         next_actions = np.argmax(retmainQs, axis = 1) 
         targets =  self.model.predict(states,verbose=0)
         
         rew_preds = rewards + gamma * targetQN.model.predict(next_states,verbose=0)
         K.clear_session()
-        #rew_preds = rewards
         for i in range(batch_size):
             targets[i][actions[i]] = rew_preds[i][actions[i]]
-            #targets[i][actions[i]] = rew_preds[i]
-            
-            if targets[i].mean() >1000 or targets[i].mean() < -1000:
-                print("reward is too big. learning stop")
-                exit(1)
-            # if i%10==0:print("-",end="",flush=True)
-        self.model.fit(states,targets, epochs=30, verbose=0)  # epochsは訓練データの反復回
+        self.model.fit(states,targets, epochs=30, verbose=0)
         K.clear_session()
     
     def save(self,name = "./data/SimpleGame3.h5"):
@@ -118,7 +93,7 @@ class QNetwork:
         df = pd.read_csv("./data/sampledata.csv")
         inputs = np.stack([df["myCrate"],df["opoCrate"]],1)
         targets = np.stack([df["target_up"],df["target_down"]],1)
-        self.model.fit(inputs,targets, epochs=100, verbose=0)  # epochsは訓練データの反復回
+        self.model.fit(inputs,targets, epochs=100, verbose=0) 
     
     def pred_test(self):
         inputs = np.random.rand(10,2)
