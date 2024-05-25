@@ -1,4 +1,5 @@
-# Cooperation is encouraged simply by increasing the number of participants
+# Analysing Public Goods Games Using Reinforcement Learning, Effect of Increasing Group Size on Cooperation
+
 This repository is used to publish information about papers with the above titles.
 
 ## Table of Contents
